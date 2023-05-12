@@ -110,3 +110,14 @@ class ProductSerializer(FlexFieldsModelSerializer):
         'supplier': ('basic.SupplierSerializer',),
         'product_group': ('basic.ProductGroupSerializer',)
     }
+
+
+class BranchSerializer(FlexFieldsModelSerializer):
+    class Meta:
+        model = models.Branch
+        fields = '__all__'
+
+
+class BrachSoldMostSerializer(serializers.Serializer):
+    name = serializers.CharField(read_only=True)
+    total = serializers.IntegerField(read_only=True)

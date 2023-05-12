@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from django.db.models import ExpressionWrapper, F, Value, FloatField, Sum
+from django.db.models import ExpressionWrapper, F, Value, FloatField, Sum, OuterRef, Count, Subquery
 from rest_framework.response import Response
 from basic import models, serializers, filters
 
@@ -76,3 +76,20 @@ class ProductModelViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ProductSerializer
     filterset_class = filters.ProductFilter
 
+
+class BranchModelViewSet(viewsets.ModelViewSet):
+    queryset = models.Branch.objects.prefetch_related('sale_set').all()
+    serializer_class = serializers.BranchSerializer
+    filterset_class = filters.BranchFilter
+
+    @action(methods=['GET'], detail=False)
+    def most_sold(self, request, *args, **kwargs):
+        sbq = models.Sale.objects.filter(branch=OuterRef('id')).values('branch_id').annotate(
+            total=Count('saleitem__id')
+        ).values('total')
+        self.queryset = self.get_queryset().annotate(
+            total=Subquery(sbq)
+        ).order_by('-total').first()
+
+        result = serializers.BrachSoldMostSerializer(instance=self.queryset, context=self.get_serializer_context())
+        return Response(data=result.data, status=200)

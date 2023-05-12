@@ -54,3 +54,9 @@ class ProductFilter(filterset.FilterSet):
     class Meta:
         model = models.Product
         fields = ['name']
+
+
+class BranchFilter(filterset.FilterSet):
+    class Meta:
+        model = models.Branch
+        fields = ['name']

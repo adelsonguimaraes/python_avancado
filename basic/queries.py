@@ -1,6 +1,6 @@
 from basic import models
 from django.db.models import Q, F, ExpressionWrapper, Func, Value, FloatField, Case, When, DurationField, DateField, IntegerField, CharField, Sum, Count
-from django.db.models.functions import Now, Cast, ExtractDay, LPad, Replace
+from django.db.models.functions import Now, Cast, ExtractDay, LPad, Replace, Round, Trunc
 
 
 # Atividade 1: Fazer uma consulta para retornar todos os funcionários
@@ -135,7 +135,7 @@ def all_sales_between_2010_2021():
 def all_employees_with_type_by_age():
     employees = models.Employee.objects.annotate(
         diff=ExpressionWrapper(Cast(Now(), output_field=DateField()) - F('birth_date'), output_field=DurationField()),
-        age=ExpressionWrapper(ExtractDay(F('diff')) / 365, output_field=IntegerField()),
+        age=ExpressionWrapper(Cast(ExtractDay(F('diff')) / 365, output_field=IntegerField()), output_field=IntegerField()),
         type=Case(
             When(age__range=(18, 25), then=Value('Jr')),
             When(age__range=(26, 35), then=Value('Pl')),
@@ -143,6 +143,8 @@ def all_employees_with_type_by_age():
             default=Value('Menor Aprendiz')
         )
     ).values('name', 'age', 'type').order_by('age')
+
+
     for e in employees:
         print(f"{e['name']} - {e['age']} - {e['type']}")
 
@@ -161,6 +163,7 @@ def all_employees_status_based_admission_time():
         )
     ).order_by('admission_time')
     for e in employees:
+        print(e.diff)
         print(f"{e.name} - {e.admission_date} - {e.admission_time} - {e.status}")
 
 
